@@ -16,6 +16,7 @@ LABEL description="LM Studio local LLM platform with browser-based GUI and NVIDI
 # --------------------------------------------------------------------------
 ENV APP_NAME="LM Studio"
 ENV KEEP_APP_RUNNING=1
+ENV HOME=/config
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=all
 
