@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         LMSTUDIO_VERSION: "0.4.6-1"
-    image: lmstudio:0.4.6
+    #image: lmstudio:0.4.6
     container_name: lmstudio
     restart: unless-stopped
 
