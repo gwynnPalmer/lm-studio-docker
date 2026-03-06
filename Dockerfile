@@ -4,7 +4,7 @@
 # GPU:  NVIDIA CUDA via NVIDIA Container Toolkit
 # =============================================================================
 
-FROM jlesage/docker-baseimage-gui:debian-12-v4
+FROM jlesage/baseimage-gui:debian-12-v4
 
 ARG LMSTUDIO_VERSION=0.4.6-1
 
