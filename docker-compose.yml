@@ -1,0 +1,56 @@
+services:
+  lmstudio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        LMSTUDIO_VERSION: "0.4.6-1"
+    image: lmstudio:0.4.6
+    container_name: lmstudio
+    restart: unless-stopped
+
+    # Required for Electron / Chromium inside Docker
+    security_opt:
+      - seccomp=unconfined
+
+    # Larger shared memory for Chromium renderer processes
+    shm_size: "2gb"
+
+    environment:
+      - USER_ID=${PUID:-1000}
+      - GROUP_ID=${PGID:-1000}
+      - TZ=${TZ:-Europe/Madrid}
+      - DISPLAY_WIDTH=1920
+      - DISPLAY_HEIGHT=1080
+      - KEEP_APP_RUNNING=1
+      # NVIDIA runtime visibility
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+
+    expose:
+      - "5800:5800"   # jlesage web UI (noVNC)
+      - "5900:5900"   # VNC direct access
+      - "1234:1234"   # LM Studio OpenAI-compatible API
+
+    volumes:
+      # Persistent configuration: conversations, settings, extensions, caches
+      - ${DOCKER_DATA:-/opt/docker}/lmstudio/config:/config
+      # Models stored separately (these get very large)
+      - ${DOCKER_DATA:-/opt/docker}/lmstudio/models:/models
+
+    # NVIDIA GPU passthrough via NVIDIA Container Toolkit
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, compute, utility]
+
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    driver: bridge
+    external: true
