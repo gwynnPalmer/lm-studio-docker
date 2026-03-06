@@ -31,6 +31,8 @@ RUN \
   apt-get install -y --no-install-recommends \
     # Electron / Chromium shared libraries \
     libgtk-3-0 \
+    # CUDA inference runtime dependency \
+    libgomp1 \
     libnotify4 \
     libnss3 \
     libxss1 \
