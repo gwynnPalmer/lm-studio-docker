@@ -36,7 +36,7 @@ services:
       # Persistent configuration: conversations, settings, extensions, caches
       - ${DOCKER_DATA:-/opt/docker}/config:/config
       # Models stored separately (these get very large)
-      - ${DOCKER_DATA:-/opt/docker}/models:/models
+      - ${DOCKER_DATA:-/opt/docker}/models:/config/.lmstudio/models
 
     # NVIDIA GPU passthrough via NVIDIA Container Toolkit
     deploy:
