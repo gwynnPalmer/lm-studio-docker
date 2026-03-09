@@ -1,10 +1,10 @@
 # =============================================================================
 # LM Studio - Containerized Local LLM Platform
-# Base: jlesage/docker-baseimage-gui (Debian 12)
+# Base: LinuxServer KasmVNC (Ubuntu Noble 24.04)
 # GPU:  NVIDIA CUDA via NVIDIA Container Toolkit
 # =============================================================================
 
-FROM jlesage/baseimage-gui:debian-12-v4
+FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntunoble
 
 ARG LMSTUDIO_VERSION=0.4.6-1
 
@@ -14,8 +14,8 @@ LABEL description="LM Studio local LLM platform with browser-based GUI and NVIDI
 # --------------------------------------------------------------------------
 # Environment
 # --------------------------------------------------------------------------
-ENV APP_NAME="LM Studio"
-ENV KEEP_APP_RUNNING=1
+ENV TITLE="LM Studio"
+ENV START_DOCKER=false
 ENV HOME=/config
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=all
@@ -23,17 +23,16 @@ ENV NVIDIA_DRIVER_CAPABILITIES=all
 # --------------------------------------------------------------------------
 # Install system dependencies
 #   - Electron/Chromium runtime requirements
-#   - CUDA toolkit compatibility libraries
+#   - CUDA inference runtime dependencies
+#   - Vulkan support (LM Studio hardware survey)
 #   - Locale support
 # --------------------------------------------------------------------------
 RUN \
   echo "***** install electron and system dependencies *****" && \
   apt-get update && \
   apt-get install -y --no-install-recommends \
-    # Electron / Chromium shared libraries \
+    # Electron / Chromium shared libraries
     libgtk-3-0 \
-    # CUDA inference runtime dependency \
-    libgomp1 \
     libnotify4 \
     libnss3 \
     libxss1 \
@@ -41,7 +40,7 @@ RUN \
     libatk-bridge2.0-0 \
     libdrm2 \
     libgbm1 \
-    libasound2 \
+    libasound2t64 \
     libx11-xcb1 \
     libxcomposite1 \
     libxcursor1 \
@@ -59,20 +58,22 @@ RUN \
     libgcc-s1 \
     libnspr4 \
     libpangocairo-1.0-0 \
-    # Vulkan support (LM Studio uses it for hardware survey) \
+    # CUDA inference runtime dependency
+    libgomp1 \
+    # Vulkan support (LM Studio uses it for hardware survey)
     libvulkan1 \
     mesa-vulkan-drivers \
-    # General utilities \
+    # General utilities
     wget \
     curl \
     ca-certificates \
     locales \
     xdg-utils \
   && \
-  # Generate locale \
+  # Generate locale
   sed -i 's/# en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && \
   locale-gen en_US.UTF-8 && \
-  # Clean up \
+  # Clean up
   apt-get clean && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -91,53 +92,29 @@ RUN \
 
 # --------------------------------------------------------------------------
 # Create directory structure
-#   /config                          - jlesage persistent home
-#   /config/.cache/lm-studio         - LM Studio app data, conversations, etc.
-#   /models                          - Separate volume for large model files
 # --------------------------------------------------------------------------
 RUN \
   mkdir -p \
-    /config/.cache/lm-studio \
-    /models
-
-# --------------------------------------------------------------------------
-# Symlink models directory
-#   LM Studio expects models at ~/.cache/lm-studio/models
-#   We symlink this to /models so it can be a separate volume mount
-# --------------------------------------------------------------------------
-RUN \
-  ln -sf /models /config/.cache/lm-studio/models
+    /config/.lmstudio \
+    /config/.lmstudio/models
 
 # --------------------------------------------------------------------------
 # Seed the HTTP server config to bind on 0.0.0.0 instead of 127.0.0.1
 #   Without this, the API is only accessible from inside the container.
 # --------------------------------------------------------------------------
 RUN \
-  mkdir -p /config/.cache/lm-studio/.internal && \
-  echo '{"port":1234,"host":"0.0.0.0"}' > /config/.cache/lm-studio/.internal/http-server-config.json
+  mkdir -p /config/.lmstudio/.internal && \
+  echo '{"port":1234,"host":"0.0.0.0"}' > /config/.lmstudio/.internal/http-server-config.json
 
 # --------------------------------------------------------------------------
-# Openbox window matching
-#   Ensure the main LM Studio window is matched correctly.
+# Autostart script for KasmVNC
 # --------------------------------------------------------------------------
-RUN \
-  mkdir -p /etc/openbox && \
-  echo '<Root>' > /etc/openbox/main-window-selection.xml && \
-  echo '  <Window>' >> /etc/openbox/main-window-selection.xml && \
-  echo '    <Type>normal</Type>' >> /etc/openbox/main-window-selection.xml && \
-  echo '  </Window>' >> /etc/openbox/main-window-selection.xml && \
-  echo '</Root>' >> /etc/openbox/main-window-selection.xml
-
-# --------------------------------------------------------------------------
-# Application launch script
-# --------------------------------------------------------------------------
-COPY startapp.sh /startapp.sh
-RUN chmod +x /startapp.sh
+COPY root/ /
 
 # --------------------------------------------------------------------------
 # Ports
-#   5800     - jlesage web UI (noVNC)
-#   5900     - VNC direct access
+#   3000     - KasmVNC web interface (HTTP)
+#   3001     - KasmVNC web interface (HTTPS)
 #   1234     - LM Studio OpenAI-compatible API
 # --------------------------------------------------------------------------
-EXPOSE 5800 5900 1234
+EXPOSE 3000 3001 1234

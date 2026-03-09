@@ -5,7 +5,6 @@ services:
       dockerfile: Dockerfile
       args:
         LMSTUDIO_VERSION: "0.4.6-1"
-    #image: lmstudio:0.4.6
     container_name: lmstudio
     restart: unless-stopped
 
@@ -17,19 +16,18 @@ services:
     shm_size: "2gb"
 
     environment:
-      - USER_ID=${PUID:-1000}
-      - GROUP_ID=${PGID:-1000}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
       - TZ=${TZ:-Europe/Madrid}
-      - DISPLAY_WIDTH=1920
-      - DISPLAY_HEIGHT=1080
-      - KEEP_APP_RUNNING=1
+      - TITLE=LM Studio
+      - START_DOCKER=false
       # NVIDIA runtime visibility
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
 
     expose:
-      - 5800   # jlesage web UI (noVNC)
-      - 5900   # VNC direct access
+      - 3000   # KasmVNC web UI (HTTP)
+      - 3001   # KasmVNC web UI (HTTPS)
       - 1234   # LM Studio OpenAI-compatible API
 
     volumes:
