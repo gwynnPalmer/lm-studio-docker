@@ -6,7 +6,7 @@
 
 FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntunoble
 
-ARG LMSTUDIO_VERSION=0.4.6-1
+#ARG LMSTUDIO_VERSION=0.4.6-1
 
 LABEL maintainer="lmstudio-docker"
 LABEL description="LM Studio local LLM platform with browser-based GUI and NVIDIA GPU support"
@@ -81,9 +81,9 @@ RUN \
 # Download and install LM Studio .deb
 # --------------------------------------------------------------------------
 RUN \
-  echo "***** download LM Studio v${LMSTUDIO_VERSION} *****" && \
+  echo "***** download LM Studio latest *****" && \
   wget -q -O /tmp/lmstudio.deb \
-    "https://installers.lmstudio.ai/linux/x64/${LMSTUDIO_VERSION}/LM-Studio-${LMSTUDIO_VERSION}-x64.deb" && \
+    "https://lmstudio.ai/download/latest/linux/x64?format=deb" && \
   echo "***** install LM Studio *****" && \
   apt-get update && \
   apt-get install -y --no-install-recommends /tmp/lmstudio.deb && \
